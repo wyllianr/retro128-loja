@@ -24,11 +24,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.publicacao.outputs.page_url }}
     steps:
       - name: Baixar o código da versão escolhida
         uses: actions/checkout@v4
@@ -56,6 +53,15 @@ jobs:
         with:
           path: .
 
+  # Publicação em job separado: quando o deploy roda no mesmo job logo após o
+  # upload, às vezes o GitHub ainda não encontra o artefato "github-pages".
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publicacao.outputs.page_url }}
+    steps:
       - name: Publicar
         id: publicacao
         uses: actions/deploy-pages@v4
